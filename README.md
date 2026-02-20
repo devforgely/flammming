@@ -1,73 +1,36 @@
-# React + TypeScript + Vite
+# Jamming
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Jammming is a React web application that connects to the Spotify API, allowing users to search for songs, create custom playlists, and save them directly to their Spotify account. [Live Demo](https://devforgely.github.io/flammming)
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Spotify Login: First-time users are prompted to log in or create a Spotify account when searching for songs.
 
-## React Compiler
+- Save Playlist to Account: Export custom playlists directly to the user's Spotify library with one click.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- Search by Song, Album, or Artist: Query Spotify's extensive music database using the search bar.
 
-## Expanding the ESLint configuration
+- Populate Results List: View returned tracks from search queries in an organized display.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- Add Songs to Custom Playlist: Use the + button on any track to add it to your playlist.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- Remove Songs from Custom Playlist: Use the - button to remove tracks from your playlist.
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+- Change Playlist Title: Edit and customize your playlist name.
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Technologies
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+- React: Front-end library for building component-based user interfaces
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+- Spotify Web API: Integration with Spotify's music database and user account features
+
+- JavaScript (ES6+): Modern JavaScript for application logic and functionality
+
+- HTML5 & CSS3: Structure and styling for the user interface
+
+- HTTP Requests: Fetch API for communicating with Spotify endpoints
+
+- Git & GitHub: Version control and project management
+
+## Future improvements
