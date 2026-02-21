@@ -33,27 +33,28 @@ function App() {
     if (spotifyAuthParsed.refresh_token) {
       await refreshToken(spotifyAuthParsed.refresh_token, clientId);
     }
-  }
+  };
 
   const search = (term: string) => {
     if (!term) {
       setSearchResults([]);
       return;
     }
-    verifyUser();
 
-    const token = JSON.parse(localStorage.getItem('spotify_auth') || '{}').access_token;
-    if (!token) {
-      alert('Authentication failed. Please refresh the page and try again.');
-      localStorage.removeItem("spotify_auth");
+    verifyUser().then(() => {
+      const token = JSON.parse(localStorage.getItem('spotify_auth') || '{}').access_token;
+      if (!token) {
+        alert('Authentication failed. Please refresh the page and try again.');
+        localStorage.removeItem("spotify_auth");
       return;
     }
 
-    searchTracks(term, token).then(results => setSearchResults(results)).catch(error => {
-      console.error('Error searching tracks:', error);
-      alert('An error occurred while searching for tracks. Please try again.');
-    })
-  }
+      searchTracks(term, token).then(results => setSearchResults(results)).catch(error => {
+        console.error('Error searching tracks:', error);
+        alert('An error occurred while searching for tracks. Please try again.');
+      })
+    });
+  };
   
   const addTrack = (track: Track) => {
     if (playlistTracks.find(savedTrack => savedTrack.id === track.id)) {
@@ -71,26 +72,26 @@ function App() {
   };
 
   const savePlaylist = () => {
-    verifyUser();
-    
-    const token = JSON.parse(localStorage.getItem('spotify_auth') || '{}').access_token;
-    if (!token) {
-      alert('Authentication failed. Please refresh the page and try again.');
-      localStorage.removeItem("spotify_auth");
-      return;
-    }
+    verifyUser().then(() => {
+      const token = JSON.parse(localStorage.getItem('spotify_auth') || '{}').access_token;
+      if (!token) {
+        alert('Authentication failed. Please refresh the page and try again.');
+        localStorage.removeItem("spotify_auth");
+        return;
+      }
 
-    const trackUris = playlistTracks.map(track => track.uri);
-    createPlaylist(playlistName, trackUris, token).then(() => {
-      alert('Playlist saved successfully!');
-    }).catch(error => {
-      console.error('Error saving playlist:', error);
-      alert('An error occurred while saving the playlist. Please try again.');
+      const trackUris = playlistTracks.map(track => track.uri);
+      createPlaylist(playlistName, trackUris, token).then(() => {
+        alert('Playlist saved successfully!');
+      }).catch(error => {
+        console.error('Error saving playlist:', error);
+        alert('An error occurred while saving the playlist. Please try again.');
+      });
+      
+      // Reset after saving
+      setPlaylistName('New Playlist');
+      setPlaylistTracks([]);
     });
-    
-    // Reset after saving
-    setPlaylistName('New Playlist');
-    setPlaylistTracks([]);
   };
 
   return (
