@@ -1,20 +1,16 @@
 type artist = {
-  items: {
-    name: string
-  }[]
+  name: string;
 };
 
 type album = {
-  items: {
-    name: string
-  }[]
+  name: string;
 };
 
 type Track = {
   id: string;
   name: string;
   artists: artist[];
-  albums: album[];
+  album: album;
   uri: string;
 };
 

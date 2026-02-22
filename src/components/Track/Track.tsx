@@ -22,7 +22,7 @@ export default function Track({ track, onAdd, onRemove, isRemoval }: TrackProps)
         </div>
         <div className="track-info">
           <h3>{track.name}</h3>
-          <p>{track.artists[0].items[0].name} <span className="dot">•</span> {track.albums[0].items[0].name}</p>
+          <p>{track.artists[0].name} <span className="dot">•</span> {track.album.name}</p>
         </div>
       </div>
       <button className={`track-action-btn ${isRemoval ? 'remove' : 'add'}`} onClick={handleAction}>

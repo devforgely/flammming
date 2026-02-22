@@ -4,7 +4,7 @@ import Header from './components/Header/Header';
 import Search from './components/Search/Search';
 import SearchResults from './components/SearchResults/SearchResults';
 import PlayList from './components/PlayList/PlayList';
-import { userAuthentication, getToken, refreshToken, searchTracks, createPlaylist } from './spotify/SpotifyApi';
+import { userAuthentication, getToken, searchTracks, createPlaylist } from './spotify/SpotifyApi';
 
 function App() {
   const [searchResults, setSearchResults] = useState<Track[]>([]);
@@ -13,26 +13,33 @@ function App() {
 
   const verifyUser = async () => {
     const clientId = import.meta.env.VITE_SPOTIFY_CLIENT_ID || '';
+    const redirectUri = import.meta.env.VITE_SPOTIFY_REDIRECT_URI || '';
+
     const spotifyAuth = localStorage.getItem('spotify_auth');
-
-    if (!spotifyAuth) {
-      const redirectUri = import.meta.env.VITE_SPOTIFY_REDIRECT_URI || '';
-      await userAuthentication(clientId, redirectUri);
-      await getToken(new URLSearchParams(window.location.search).get('code') || '', clientId, redirectUri);
-      return;
+    
+    // Already authenticated and not expired → done
+    if (spotifyAuth) {
+      const auth = JSON.parse(spotifyAuth);
+      if (auth.expires_at && Date.now() < auth.expires_at) {
+        return; // ✅ valid token, resolve immediately
+      }
+      // Token expired → clean up and continue
+      localStorage.removeItem('spotify_auth');
     }
 
-    const spotifyAuthParsed: SpotifyAuth = JSON.parse(localStorage.getItem('spotify_auth') || '{}');
-    // If token still valid → nothing to do
-    // At least 5 seconds before expiration to avoid edge cases where token expires during an API call
-    if (spotifyAuthParsed.expires_at && Date.now() < spotifyAuthParsed.expires_at - 5000) {
-      return;
+    const code = new URLSearchParams(window.location.search).get('code');
+
+    // Have a code → exchange it and WAIT for the result
+    if (code) {
+      await getToken(code, clientId, redirectUri);          // ← await!
+      window.history.replaceState({}, document.title, window.location.pathname);
+      return; // ✅ token is now in localStorage
     }
 
-    // Token expired → refresh it
-    if (spotifyAuthParsed.refresh_token) {
-      await refreshToken(spotifyAuthParsed.refresh_token, clientId);
-    }
+    // No auth and no code → redirect to Spotify
+    userAuthentication(clientId, redirectUri);
+    // This redirect navigates away, but reject so callers don't continue
+    return Promise.reject('Redirecting to Spotify for authentication.');
   };
 
   const search = (term: string) => {
@@ -46,13 +53,15 @@ function App() {
       if (!token) {
         alert('Authentication failed. Please refresh the page and try again.');
         localStorage.removeItem("spotify_auth");
-      return;
-    }
-
-      searchTracks(term, token).then(results => setSearchResults(results)).catch(error => {
-        console.error('Error searching tracks:', error);
-        alert('An error occurred while searching for tracks. Please try again.');
-      })
+        return;
+      }
+      return searchTracks(term, token);
+    })
+    .then(results => {
+      setSearchResults(results);
+    })
+    .catch(error => {
+      console.warn('Warning during search:', error);
     });
   };
   
@@ -84,8 +93,7 @@ function App() {
       createPlaylist(playlistName, trackUris, token).then(() => {
         alert('Playlist saved successfully!');
       }).catch(error => {
-        console.error('Error saving playlist:', error);
-        alert('An error occurred while saving the playlist. Please try again.');
+        console.warn('Warning saving playlist:', error);
       });
       
       // Reset after saving

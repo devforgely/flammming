@@ -23,4 +23,3 @@ export const codeChallenge = async (codeVerifier: string) => {
     const hashed = await sha256(codeVerifier)
     return base64encode(hashed);
 }
-

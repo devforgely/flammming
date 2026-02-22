@@ -3,7 +3,7 @@ import { generateRandomString, codeChallenge } from './CodeChallenge';
 export const userAuthentication = async (
     clientId: string,
     redirectUri: string,
-    scope: string = "",
+    scope: string = "user-read-private user-read-email playlist-modify-public",
     authUrl: URL = new URL("https://accounts.spotify.com/authorize")
 ) => {
     const codeVerifier = generateRandomString(64);
@@ -26,7 +26,7 @@ export const userAuthentication = async (
 
 export const getToken = async (code: string, clientId: string, redirectUri: string) => {
   // stored in the previous step
-  const codeVerifier = localStorage.getItem('code_verifier');
+  const codeVerifier = window.localStorage.getItem('code_verifier');
 
   if (!codeVerifier) {
     throw new Error('Code verifier not found in localStorage.');
@@ -48,39 +48,17 @@ export const getToken = async (code: string, clientId: string, redirectUri: stri
   }
 
   const body = await fetch(url, payload);
-  const response = await body.json();
-  if (response.ok) {
-    const refresh_token = response.refresh_token;
+  if (body.ok) {
+    const response = await body.json();
 
     localStorage.setItem('spotify_auth', JSON.stringify({
       access_token: response.access_token,
-      refresh_token: refresh_token,
       expires_at: Date.now() + response.expires_in * 1000
     }));
+    return;
   }
+  return Promise.reject("Failed to exchange code for token");
 }
-
-export const refreshToken = async (refreshToken: string, clientId: string) => {
-    const payload = {
-        method: 'POST',
-        headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        body: new URLSearchParams({
-            grant_type: 'refresh_token',
-            refresh_token: refreshToken,
-            client_id: clientId
-        }),
-    }
-    const body = await fetch("https://accounts.spotify.com/api/token", payload);
-    const response = await body.json();
-
-    localStorage.setItem("spotify_auth", JSON.stringify({
-      access_token: response.access_token,
-      refresh_token: response.refresh_token,
-      expires_at: Date.now() + response.expires_in * 1000,
-    }));
-};
 
 const handleResponseErrors = (response: Response) => {
   if (response.status === 401) {
@@ -95,12 +73,12 @@ const handleResponseErrors = (response: Response) => {
 }
 
 export const searchTracks = async (term: string, token: string) => {
-    const url = `https://api.spotify.com/v1/search?q=${term}&type=track`;
+    const url = `https://api.spotify.com/v1/search?q=${encodeURIComponent(term)}&type=track&limit=10`;
 
     const response = await fetch(url, {
-        headers: {
-            Authorization: `Bearer ${token}`
-        }
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
     });
 
     handleResponseErrors(response);
@@ -112,8 +90,8 @@ export const searchTracks = async (term: string, token: string) => {
             id: track.id,
             name: track.name,
             artists: track.artists,
-            albums: track.albums,
-            url: track.uri
+            album: track.album,
+            uri: track.uri
           };
         });
       }
@@ -152,7 +130,9 @@ export const createPlaylist = async (name: string, trackUris: string[], token: s
             body : JSON.stringify({uris: trackUris, position: 0})
         });
         handleResponseErrors(addResponse);
+        return;
       }
     }
   }
+  return Promise.reject("Empty track list");
 }
